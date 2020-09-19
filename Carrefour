@@ -1,0 +1,66 @@
+import requests
+from bs4 import BeautifulSoup
+import os
+import json
+import pprint
+import csv
+import time
+import random
+
+ua = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'
+headers = {
+    'User-Agent': ua
+}
+
+columns = ['Category ID','Category Name','Retail Name','Retail Price']
+# with open ('Carrefour.csv','w', newline='', encoding='ANSI') as csvfile:
+#     writer = csv.writer(csvfile)
+#     writer.writerow(columns)
+
+
+#553,649,1312,1484,1748,2525,
+# 2654=>raise ConnectionError(err, request=request)requests.exceptions.ConnectionError: ('Connection aborted.', ConnectionResetError(10054, '遠端主機已強制關閉一個現存的連線
+#2729,2756,2931,3045,3308,3312,3328,3583,3609,3760,3881,3906
+for a in range(1,5000):
+    for c in range(1,3):
+
+        data = {
+            'categoryId': str(a),
+            'orderBy': '21',
+            'pageIndex': str(c),
+            'pageSize': '20',
+            'isLoadThree': 'false'
+        }
+
+        print(data)
+
+#print(type(data)) #dict
+
+
+        #time.sleep(random.randrange(1, 3))
+        #找出Network XHR JSON檔案的header URL 與 Data Form
+        res = requests.post('https://online.carrefour.com.tw/ProductShowcase/Catalog/CategoryJson' ,headers = headers, data = data)
+        #print(type(res)) -->  <class 'requests.models.Response'>
+        #print(type(res.text))  --> <class 'str'>
+
+        result = json.loads(res.text)
+        #print(type(result))  -->  <class 'dict'>
+
+        for i in range (0,19):
+            try:
+                product_name = result["content"]["ProductListModel"][i]['Name']
+                product_price = result["content"]["ProductListModel"][i]['Price']
+                category_name = result["content"]["ProductListModel"][i]['StrCategory']
+                print(product_name,product_price,category_name,sep = '++')
+                print(product_name,product_price+'元' ,sep='  ')
+
+
+                insert_data=[data['categoryId'],category_name,product_name,product_price]
+                with open('Carrefour.csv', 'a', newline='', encoding='ANSI') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(insert_data)
+
+
+            except :
+                pass
+                print("==================end======================")
